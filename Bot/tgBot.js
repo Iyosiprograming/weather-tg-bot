@@ -1,84 +1,79 @@
 import { Telegraf } from "telegraf";
-import axios from "axios";
 import { config } from "dotenv";
-config();
+import { fetchWeather } from "../service/fetchweather.js";
+import path from "path";
+
+config({ path: path.resolve('../.env') }); // ensure dotenv loads from root
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
-const API_URL = process.env.API_URL || "http://localhost:5000/api"; // backend URL
+// Guide message on /start
+bot.start((ctx) => {
+  const guide = `
+🌤 Welcome to the Weather Bot! 🌤
 
-// ────────────────────────────────
-// /start command
-// ────────────────────────────────
-bot.start(async (ctx) => {
-  try {
-    ctx.reply("🌤 Welcome to the Weather Bot!\n\nType /weather <city> to get current weather.\nExample: /weather Addis Ababa");
-  } catch (e) {
-    console.log(e);
-  }
+You can now just type the city name directly to get the weather.
+
+Examples:
+Addis Ababa
+London
+New York
+
+
+Type /help for command summary.
+  `;
+  ctx.reply(guide);
 });
 
-// ────────────────────────────────
 // /help command
-// ────────────────────────────────
-bot.help(async (ctx) => {
-  try {
-    ctx.reply("📘 Commands:\n/start - Start the bot\n/help - Show help\n/weather <city> - Get weather for a city");
-  } catch (e) {
-    console.log(e);
-  }
+bot.help((ctx) => {
+  ctx.reply(`
+  📘 You can now just type the city name directly to get the weather.
+
+Examples:
+Addis Ababa
+London
+New York
+  `);
 });
 
-// ────────────────────────────────
-// /weather command
-// ────────────────────────────────
-bot.command("weather", async (ctx) => {
+// Handle messages (city names)
+bot.on("text", async (ctx) => {
   try {
-    const chatId = ctx.chat.id;
-    const message = ctx.message.text;
-    const city = message.split(" ")[1]; // /weather <city>
+    const city = ctx.message.text.trim();
+    if (!city) return;
 
-    if (!city) {
-      return ctx.reply("⚠️ Please provide a city name.\nExample: /weather London");
+    ctx.reply(`🔍 Fetching weather for: ${city}...`);
+
+    const weatherData = await fetchWeather(city);
+    if (!weatherData) {
+      return ctx.reply("❌ Unable to fetch weather. Please check the city name or try again.");
     }
 
-    ctx.reply("🔍 Fetching weather data...");
-
-    // Send request to backend API
-    const response = await axios.post(`${API_URL}/cities`, {
-      chatId,
-      city,
-    });
-
-    const { weather } = response.data;
-    const { description, temp, feels_like, humidity, wind_speed, city: cityName } = weather;
-
     const weatherMsg = `
-🌆 *${cityName}*
-🌡️ Temperature: *${temp}°C*
-🤔 Feels like: *${feels_like}°C*
-💧 Humidity: *${humidity}%*
-🌬️ Wind: *${wind_speed} m/s*
-☁️ Condition: *${description}*
+🌆 *${weatherData.city}*
+🌡️ Temperature: *${weatherData.temp}°C*
+🤔 Feels like: *${weatherData.feels_like}°C*
+💧 Humidity: *${weatherData.humidity}%*
+🌬️ Wind: *${weatherData.wind_speed} m/s*
+☁️ Condition: *${weatherData.description}*
     `;
 
-    ctx.replyWithMarkdown(weatherMsg);
+    await ctx.replyWithPhoto(weatherData.icon, {
+      caption: weatherMsg,
+      parse_mode: "Markdown",
+    });
+
   } catch (e) {
-    console.error("❌ Error fetching weather:", e.message);
-    ctx.reply("❌ Failed to fetch weather data. Please try again later.");
+    console.error("Error fetching weather:", e);
+    ctx.reply("❌ Something went wrong. Please try again.");
   }
 });
 
-// ────────────────────────────────
-// Start bot
-// ────────────────────────────────
-const start = async () => {
-  try {
-    await bot.launch();
-    console.log("🤖 Telegram bot started!");
-  } catch (e) {
-    console.error(e);
-  }
-};
+// Launch bot
+bot.launch();
+console.log("🤖 Telegram bot started!");
 
-start();
+// Graceful stop
+process.once("SIGINT", () => bot.stop("SIGINT"));
+process.once("SIGTERM", () => bot.stop("SIGTERM"));

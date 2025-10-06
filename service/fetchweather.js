@@ -1,5 +1,9 @@
 import axios from "axios";
+import { config } from "dotenv";
+import path from "path";
 
+config({ path: path.resolve('../.env') }); // <-- explicitly points to root .env
+config();
 const API_KEY = process.env.WEATHER_API_KEY; // Set this in your .env file
 
 export const fetchWeather = async (city) => {

@@ -1,7 +1,9 @@
-import { handleCity } from "../controller/weatherController";
 import express from "express";
+import { handleCity } from "../controller/weatherController.js";
+
 const router = express.Router();
 
-router.post("/cities", handleCity);
+// POST /api/city — fetch weather without saving users
+router.post("/city", handleCity);
 
 export default router;
