@@ -1,6 +1,4 @@
-Got it — here’s a **serious, professional, GitHub-ready README** for your repo. You can copy-paste it directly:
 
----
 
 # Telegram Weather Bot 🌤️
 
@@ -47,9 +45,8 @@ BOT_TOKEN=your_telegram_bot_token
 WEATHER_API_KEY=your_openweather_api_key
 ```
 
-> **Important:** Never commit `.env` to GitHub.
 
----
+
 
 ## Usage
 
@@ -100,10 +97,7 @@ Contributions are welcome! Some ideas:
 
 MIT License © Iyosi Programming
 
----
 
-This is **clean, professional, and GitHub-ready**.
 
-If you want, I can also make a **slightly shorter version with badges and quick install steps** that looks **very modern and professional on GitHub**, like many popular projects.
 
 Do you want me to do that?
