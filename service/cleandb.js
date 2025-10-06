@@ -1,3 +1,0 @@
-/* 
-    clean db every morning
-*/
