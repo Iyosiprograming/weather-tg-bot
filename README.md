@@ -98,6 +98,3 @@ Contributions are welcome! Some ideas:
 MIT License © Iyosi Programming
 
 
-
-
-Do you want me to do that?
